@@ -63,7 +63,7 @@ public class ThisIsTheOne extends LinearOpMode {
             return new LiftUp();
         }
 
-        public class LiftDown implements Action {
+        public class LiftMid implements Action {
             private boolean initialized = false;
 
             @Override
@@ -79,6 +79,34 @@ public class ThisIsTheOne extends LinearOpMode {
                 double pos = llift.getCurrentPosition();
                 packet.put("liftPos", pos);
                 if (pos > 700) {
+                    return true;
+                } else {
+                    llift.setPower(0);
+                    rlift.setPower(0);
+                    return false;
+                }
+            }
+        }
+        public Action liftMid(){
+            return new LiftDown();
+        }
+
+        public class LiftDown implements Action {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    llift.setPower(-0.8);
+                    rlift.setPower(-0.8);
+                    llift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    rlift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    initialized = true;
+                }
+
+                double pos = llift.getCurrentPosition();
+                packet.put("liftPos", pos);
+                if (pos > 0) {
                     return true;
                 } else {
                     llift.setPower(0);
@@ -197,7 +225,7 @@ public class ThisIsTheOne extends LinearOpMode {
         private Servo wrist;
 
         public Wrist(HardwareMap hardwareMap) {
-            wrist = hardwareMap.get(Servo.class, "Claw");
+            wrist = hardwareMap.get(Servo.class, "Wrist");
         }
 
         public class DownWrist implements Action {
@@ -237,31 +265,17 @@ public class ThisIsTheOne extends LinearOpMode {
         int visionOutputPosition = 1;
 
         TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
-                .lineToX(31);
-               /* .waitSeconds(2)
-                .setTangent(Math.toRadians(90))
-                .lineToY(48)
-                .setTangent(Math.toRadians(0))
-                .lineToX(32)
-                .strafeTo(new Vector2d(44.5, 30))
-                .turn(Math.toRadians(180))
-                .lineToX(47.5)
-                .waitSeconds(3);*/
+                .lineToX(33);
         TrajectoryActionBuilder tab2 = drive.actionBuilder(initialPose)
-                //.lineToY(37)
-                //.setTangent(Math.toRadians(0))
-                //.lineToX(18)
-                //.waitSeconds(3)
-                //.setTangent(Math.toRadians(0))
-                //.lineToXSplineHeading(46, Math.toRadians(180))
-                .waitSeconds(3);
+                .waitSeconds(3)
+                .lineToX(23)
+                .lineToY(47);
         TrajectoryActionBuilder tab3 = drive.actionBuilder(initialPose)
-                //.lineToYSplineHeading(33, Math.toRadians(180))
-                //.waitSeconds(2)
-                //.strafeTo(new Vector2d(46, 30))
-                .waitSeconds(3);
-        Action trajectoryActionCloseOut = tab1.endTrajectory().fresh()
+                ;
+        Action trajectoryActionClose1 = tab1.endTrajectory().fresh()
                 //.strafeTo(new Vector2d(48, 12))
+                .build();
+        Action trajectoryActionClose2 = tab2.endTrajectory().fresh()
                 .build();
 
         // actions that need to happen on init; for instance, a claw tightening.
@@ -277,6 +291,8 @@ public class ThisIsTheOne extends LinearOpMode {
         int startPosition = visionOutputPosition;
         telemetry.addData("Starting Position", startPosition);
         telemetry.update();
+        lift.liftUp();
+        wrist.wristUp();
         waitForStart();
 
         if (isStopRequested()) return;
@@ -292,17 +308,21 @@ public class ThisIsTheOne extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
-                        lift.liftUp(),
-                        trajectoryActionChosen,
-                        wrist.wristUp(),
-                        lift.liftDown(),
+                        tab1.build(),
+                        trajectoryActionClose1,
+                        wrist.wristDown(),
+                        lift.liftMid(),
                         claw.openClaw(),
+                        tab2.build(),
+                        trajectoryActionClose2,
+                        lift.liftDown()
+
 
 
 
 
                       //  lift.liftUp(),
-                        trajectoryActionCloseOut
+
                 )
         );
     }
