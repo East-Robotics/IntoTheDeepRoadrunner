@@ -315,13 +315,13 @@ public class ThisIsTheOne extends LinearOpMode {
                         claw.openClaw(),
                         tab2.build(),
                         trajectoryActionClose2,
-                        lift.liftDown()
+                        lift.liftDown(),
 
 
 
 
 
-                      //  lift.liftUp(),
+                        lift.liftUp()
 
                 )
         );
