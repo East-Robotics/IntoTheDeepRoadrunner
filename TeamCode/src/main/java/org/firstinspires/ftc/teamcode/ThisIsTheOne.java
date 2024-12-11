@@ -43,8 +43,6 @@ public class ThisIsTheOne extends LinearOpMode {
                 if (!initialized) {
                     rlift.setPower(0.8);
                     llift.setPower(0.8);
-                    llift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    rlift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     initialized = true;
                 }
 
@@ -69,18 +67,17 @@ public class ThisIsTheOne extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    llift.setPower(-0.8);
-                    rlift.setPower(-0.8);
-                    llift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    rlift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    llift.setPower(-0.6);
+                    rlift.setPower(-0.6);
                     initialized = true;
                 }
 
                 double pos = llift.getCurrentPosition();
                 packet.put("liftPos", pos);
-                if (pos > 700) {
+                if (pos < 1000) {
                     return true;
                 } else {
+                    sleep(300);
                     llift.setPower(0);
                     rlift.setPower(0);
                     return false;
@@ -88,7 +85,7 @@ public class ThisIsTheOne extends LinearOpMode {
             }
         }
         public Action liftMid(){
-            return new LiftDown();
+            return new LiftMid();
         }
 
         public class LiftDown implements Action {
@@ -99,8 +96,6 @@ public class ThisIsTheOne extends LinearOpMode {
                 if (!initialized) {
                     llift.setPower(-0.8);
                     rlift.setPower(-0.8);
-                    llift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    rlift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     initialized = true;
                 }
 
@@ -141,8 +136,6 @@ public class ThisIsTheOne extends LinearOpMode {
                 if (!initialized) {
                     rslide.setPower(-0.8);
                     lslide.setPower(-0.8);
-                    lslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    rslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     initialized = true;
                 }
 
@@ -203,6 +196,7 @@ public class ThisIsTheOne extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 claw.setPosition(0.55);
+                sleep(300);
                 return false;
             }
         }
@@ -213,7 +207,7 @@ public class ThisIsTheOne extends LinearOpMode {
         public class OpenClaw implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(1.0);
+                claw.setPosition(0.2);
                 return false;
             }
         }
@@ -254,7 +248,7 @@ public class ThisIsTheOne extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Pose2d initialPose = new Pose2d(11.8, 61.7, Math.toRadians(0));
+        Pose2d initialPose = new Pose2d(0, 0, Math.toRadians(0));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         Claw claw = new Claw(hardwareMap);
         Lift lift = new Lift(hardwareMap);
@@ -265,13 +259,12 @@ public class ThisIsTheOne extends LinearOpMode {
         int visionOutputPosition = 1;
 
         TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
-                .lineToX(33);
+                .lineToX(25.3);
         TrajectoryActionBuilder tab2 = drive.actionBuilder(initialPose)
                 .waitSeconds(3)
-                .lineToX(23)
-                .lineToY(47);
+                .strafeTo(new Vector2d(21.5,39.5));
         TrajectoryActionBuilder tab3 = drive.actionBuilder(initialPose)
-                ;
+                .turn(Math.toRadians(-45));
         Action trajectoryActionClose1 = tab1.endTrajectory().fresh()
                 //.strafeTo(new Vector2d(48, 12))
                 .build();
@@ -280,6 +273,8 @@ public class ThisIsTheOne extends LinearOpMode {
 
         // actions that need to happen on init; for instance, a claw tightening.
         Actions.runBlocking(claw.closeClaw());
+        Actions.runBlocking(lift.liftUp());
+        Actions.runBlocking(wrist.wristUp());
 
 
         while (!isStopRequested() && !opModeIsActive()) {
@@ -291,8 +286,7 @@ public class ThisIsTheOne extends LinearOpMode {
         int startPosition = visionOutputPosition;
         telemetry.addData("Starting Position", startPosition);
         telemetry.update();
-        lift.liftUp();
-        wrist.wristUp();
+
         waitForStart();
 
         if (isStopRequested()) return;
@@ -314,14 +308,13 @@ public class ThisIsTheOne extends LinearOpMode {
                         lift.liftMid(),
                         claw.openClaw(),
                         tab2.build(),
-                        trajectoryActionClose2,
                         lift.liftDown(),
-
-
-
-
-
-                        lift.liftUp()
+                        claw.closeClaw(),
+                        trajectoryActionClose2,
+                        lift.liftUp(),
+                        wrist.wristUp(),
+                        slide.slideUp(),
+                        tab3.build()
 
                 )
         );
