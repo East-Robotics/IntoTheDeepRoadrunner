@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.Rotation2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -14,6 +15,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.teleops.CenterstageTestCode;
 
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -48,7 +50,7 @@ public class ThisIsTheOne extends LinearOpMode {
 
                 double pos = llift.getCurrentPosition();
                 packet.put("liftPos", pos);
-                if (pos < 1300) {
+                if (pos < 2300) {
                     return true;
                 } else {
                     llift.setPower(0);
@@ -59,6 +61,32 @@ public class ThisIsTheOne extends LinearOpMode {
         }
         public Action liftUp() {
             return new LiftUp();
+        }
+
+        public class LiftInit implements Action {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    rlift.setPower(0.8);
+                    llift.setPower(0.8);
+                    initialized = true;
+                }
+
+                double pos = llift.getCurrentPosition();
+                packet.put("liftPos", pos);
+                if (pos < 1300) {
+                    return true;
+                } else {
+                    llift.setPower(0);
+                    rlift.setPower(0);
+                    return false;
+                }
+            }
+        }
+        public Action liftInit() {
+            return new LiftInit();
         }
 
         public class LiftMid implements Action {
@@ -261,20 +289,34 @@ public class ThisIsTheOne extends LinearOpMode {
         TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
                 .lineToX(25.3);
         TrajectoryActionBuilder tab2 = drive.actionBuilder(initialPose)
-                .waitSeconds(3)
+                .waitSeconds(0.5)
                 .strafeTo(new Vector2d(21.5,39.5));
-        TrajectoryActionBuilder tab3 = drive.actionBuilder(initialPose)
-                .turn(Math.toRadians(-45));
+        TrajectoryActionBuilder tab3 = drive.actionBuilder(new Pose2d(new Vector2d(0, 43), 0))
+                .waitSeconds(0.5)
+                .lineToXLinearHeading(21.5,-45);
+        TrajectoryActionBuilder tab4 = drive.actionBuilder(initialPose)
+                .waitSeconds(0.5)
+                .splineTo(new Vector2d(21.5, 49.5), Math.toRadians(0));
+        TrajectoryActionBuilder tab5 = drive.actionBuilder(initialPose)
+                .waitSeconds(0.5)
+                .splineTo(new Vector2d(18, 49.5), Math.toRadians(-45));
+        TrajectoryActionBuilder tab6 = drive.actionBuilder(initialPose)
+                .waitSeconds(0.5)
+                .splineTo(new Vector2d(15.5, 45.5), Math.toRadians(-45));
+
         Action trajectoryActionClose1 = tab1.endTrajectory().fresh()
                 //.strafeTo(new Vector2d(48, 12))
                 .build();
         Action trajectoryActionClose2 = tab2.endTrajectory().fresh()
                 .build();
+        Action trajectoryActionClose3 = tab3.endTrajectory().fresh()
+                .build();
 
         // actions that need to happen on init; for instance, a claw tightening.
         Actions.runBlocking(claw.closeClaw());
-        Actions.runBlocking(lift.liftUp());
-        Actions.runBlocking(wrist.wristUp());
+        Actions.runBlocking(lift.liftInit());
+
+       // Actions.runBlocking(wrist.wristUp());
 
 
         while (!isStopRequested() && !opModeIsActive()) {
@@ -291,30 +333,32 @@ public class ThisIsTheOne extends LinearOpMode {
 
         if (isStopRequested()) return;
 
-        Action trajectoryActionChosen;
-        if (startPosition == 1) {
-            trajectoryActionChosen = tab1.build();
-        } else if (startPosition == 2) {
-            trajectoryActionChosen = tab2.build();
-        } else {
-            trajectoryActionChosen = tab3.build();
-        }
-
         Actions.runBlocking(
                 new SequentialAction(
+                        wrist.wristUp(),
                         tab1.build(),
                         trajectoryActionClose1,
                         wrist.wristDown(),
                         lift.liftMid(),
                         claw.openClaw(),
+                        wrist.wristUp(),
                         tab2.build(),
+                        wrist.wristDown(),
                         lift.liftDown(),
                         claw.closeClaw(),
                         trajectoryActionClose2,
                         lift.liftUp(),
+                        tab3.build(),
                         wrist.wristUp(),
                         slide.slideUp(),
-                        tab3.build()
+                        trajectoryActionClose3,
+                        claw.openClaw(),
+                        wrist.wristDown(),
+                        slide.slideDown(),
+                        lift.liftDown()
+
+
+
 
                 )
         );
