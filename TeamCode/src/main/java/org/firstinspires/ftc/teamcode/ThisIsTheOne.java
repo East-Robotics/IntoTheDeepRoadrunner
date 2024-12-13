@@ -50,7 +50,7 @@ public class ThisIsTheOne extends LinearOpMode {
 
                 double pos = llift.getCurrentPosition();
                 packet.put("liftPos", pos);
-                if (pos < 2300) {
+                if (pos < 2600) {
                     return true;
                 } else {
                     llift.setPower(0);
@@ -76,7 +76,7 @@ public class ThisIsTheOne extends LinearOpMode {
 
                 double pos = llift.getCurrentPosition();
                 packet.put("liftPos", pos);
-                if (pos < 1300) {
+                if (pos < 1475) {
                     return true;
                 } else {
                     llift.setPower(0);
@@ -169,7 +169,7 @@ public class ThisIsTheOne extends LinearOpMode {
 
                 double pos = lslide.getCurrentPosition();
                 packet.put("SlidePos", pos);
-                if (pos < 1300) {
+                if (pos < 2500) {
                     return true;
                 } else {
                     lslide.setPower(0);
@@ -190,14 +190,14 @@ public class ThisIsTheOne extends LinearOpMode {
                 if (!initialized) {
                     lslide.setPower(0.8);
                     rslide.setPower(0.8);
-                    lslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    rslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    //lslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    //rslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     initialized = true;
                 }
 
                 double pos = lslide.getCurrentPosition();
                 packet.put("SlidePos", pos);
-                if (pos < 400) {
+                if (pos > 200) {
                     return true;
                 } else {
                     lslide.setPower(0);
@@ -208,6 +208,62 @@ public class ThisIsTheOne extends LinearOpMode {
         }
         public Action slideDown(){
             return new Down();
+        }
+
+        public class Out implements Action {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    lslide.setPower(-0.8);
+                    rslide.setPower(-0.8);
+                    //lslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    //rslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    initialized = true;
+                }
+
+                double pos = lslide.getCurrentPosition();
+                packet.put("SlidePos", pos);
+                if (pos < 1000) {
+                    return true;
+                } else {
+                    lslide.setPower(0);
+                    rslide.setPower(0);
+                    return false;
+                }
+            }
+        }
+        public Action Slideout(){
+            return new Out();
+        }
+
+        public class In implements Action {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    lslide.setPower(0.8);
+                    rslide.setPower(0.8);
+                    //lslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    //rslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    initialized = true;
+                }
+
+                double pos = lslide.getCurrentPosition();
+                packet.put("SlidePos", pos);
+                if (pos > 200) {
+                    return true;
+                } else {
+                    lslide.setPower(0);
+                    rslide.setPower(0);
+                    return false;
+                }
+            }
+        }
+        public Action Slidein(){
+            return new In();
         }
     }
 
@@ -223,7 +279,7 @@ public class ThisIsTheOne extends LinearOpMode {
         public class CloseClaw implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(0.55);
+                claw.setPosition(0.58);
                 sleep(300);
                 return false;
             }
@@ -254,11 +310,26 @@ public class ThisIsTheOne extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 wrist.setPosition(0.3);
+                sleep(500);
                 return false;
             }
         }
+
         public Action wristDown() {
             return new DownWrist();
+        }
+
+        public class BackWrist implements Action {
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+                wrist.setPosition(.99);
+                return false;
+            }
+        }
+
+        public  Action wristBack() {
+            return new BackWrist();
         }
 
         public class UpWrist implements Action {
@@ -270,6 +341,11 @@ public class ThisIsTheOne extends LinearOpMode {
         }
         public Action wristUp() {
             return new UpWrist();
+        }
+    }
+    public class Drive{
+        public Action turn(double angle){
+            return new TodoAction();
         }
     }
 
@@ -287,16 +363,17 @@ public class ThisIsTheOne extends LinearOpMode {
         int visionOutputPosition = 1;
 
         TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
-                .lineToX(25.3);
+                .lineToX(25.4);
         TrajectoryActionBuilder tab2 = drive.actionBuilder(initialPose)
                 .waitSeconds(0.5)
-                .strafeTo(new Vector2d(21.5,39.5));
-        TrajectoryActionBuilder tab3 = drive.actionBuilder(new Pose2d(new Vector2d(0, 43), 0))
+                .strafeTo(new Vector2d(20.5,39.5));
+        TrajectoryActionBuilder tab3 = drive.actionBuilder(initialPose)
                 .waitSeconds(0.5)
-                .lineToXLinearHeading(21.5,-45);
+                .strafeToLinearHeading(new Vector2d(11,45), Math.toRadians(-45));
         TrajectoryActionBuilder tab4 = drive.actionBuilder(initialPose)
                 .waitSeconds(0.5)
-                .splineTo(new Vector2d(21.5, 49.5), Math.toRadians(0));
+                .turnTo(Math.toRadians(45));
+                //.strafeToLinearHeading(new Vector2d(11,45),Math.toRadians(0));
         TrajectoryActionBuilder tab5 = drive.actionBuilder(initialPose)
                 .waitSeconds(0.5)
                 .splineTo(new Vector2d(18, 49.5), Math.toRadians(-45));
@@ -310,6 +387,10 @@ public class ThisIsTheOne extends LinearOpMode {
         Action trajectoryActionClose2 = tab2.endTrajectory().fresh()
                 .build();
         Action trajectoryActionClose3 = tab3.endTrajectory().fresh()
+                .waitSeconds(.5)
+                .build();
+        Action trajectoryActionClose4 = tab4.endTrajectory().fresh()
+                .waitSeconds(.5)
                 .build();
 
         // actions that need to happen on init; for instance, a claw tightening.
@@ -349,13 +430,19 @@ public class ThisIsTheOne extends LinearOpMode {
                         trajectoryActionClose2,
                         lift.liftUp(),
                         tab3.build(),
-                        wrist.wristUp(),
                         slide.slideUp(),
+                        wrist.wristBack(),
                         trajectoryActionClose3,
                         claw.openClaw(),
                         wrist.wristDown(),
                         slide.slideDown(),
-                        lift.liftDown()
+                        lift.liftDown(),
+
+                        trajectoryActionClose4,
+                        slide.Slideout(),
+                        claw.closeClaw(),
+                        slide.Slidein(),
+                        lift.liftUp()
 
 
 
