@@ -1,29 +1,25 @@
 package org.firstinspires.ftc.teamcode;
 
 import androidx.annotation.NonNull;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.Rotation2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.teleops.CenterstageTestCode;
-
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
-@Autonomous(name = "ThisIsTheOne", group = "Autonomous")
-public class ThisIsTheOne extends LinearOpMode {
+@Autonomous(name = "turnTest", group = "Autonomous")
+public class turnTest extends LinearOpMode {
     public class Lift {
         private DcMotorEx llift;
         private DcMotorEx rlift;
@@ -279,7 +275,7 @@ public class ThisIsTheOne extends LinearOpMode {
         public class CloseClaw implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(0.56);
+                claw.setPosition(0.57);
                 sleep(300);
                 return false;
             }
@@ -324,7 +320,7 @@ public class ThisIsTheOne extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 wrist.setPosition(1);
-                sleep(500);
+                sleep(200);
                 return false;
             }
         }
@@ -367,26 +363,26 @@ public class ThisIsTheOne extends LinearOpMode {
                 .lineToX(25.5);
         TrajectoryActionBuilder tab2 = drive.actionBuilder(initialPose)
                 .waitSeconds(0.3)
-                .strafeTo(new Vector2d(20.5,39.5));
+                .splineTo(new Vector2d(20.5,39.5),Math.toRadians(0));
         TrajectoryActionBuilder tab3 = drive.actionBuilder(new Pose2d(20.5,39.5,Math.toRadians(0)))
                 .waitSeconds(0.3)
-                //.lineToX(15)
+                //.lineToX(10)
+                //.turn(Math.toRadians(-45));
                 //.lineToYLinearHeading(45,Math.toRadians(-45));
                 .strafeToLinearHeading(new Vector2d(10,45), Math.toRadians(-45));
-        TrajectoryActionBuilder tab4 = drive.actionBuilder(new Pose2d(10,45,Math.toRadians(-45)))
+        TrajectoryActionBuilder tab4 = drive.actionBuilder(new Pose2d(10,39.5,Math.toRadians(-45)))
                 .waitSeconds(0.3)
                 //.lineToXLinearHeading(20, Math.toRadians(0));
                 .strafeToLinearHeading(new Vector2d(20.5,48), Math.toRadians(0));
                 //.strafeToLinearHeading(new Vector2d(11,45),Math  .toRadians(0));
-        TrajectoryActionBuilder tab5 = drive.actionBuilder(initialPose)
+        TrajectoryActionBuilder tab5 = drive.actionBuilder(new Pose2d(20.5,48,Math.toRadians(0)))
                 .waitSeconds(0.3)
                 //.lineToX(15)
                 //.lineToYLinearHeading(45,Math.toRadians(-45));
-                .strafeToLinearHeading(new Vector2d(10.6,45), Math.toRadians(-45));
-        /*TrajectoryActionBuilder tab6 = drive.actionBuilder(initialPose)
+                .strafeToLinearHeading(new Vector2d(10.6,45.7), Math.toRadians(-45));
+        TrajectoryActionBuilder tab6 = drive.actionBuilder(new Pose2d(10.6,45,Math.toRadians(-45)))
                 .waitSeconds(0.5)
-                .splineTo(new Vector2d(15.5, 45.5), Math.toRadians(-45));*/
-
+                .strafeToLinearHeading(new Vector2d(21.5,54), Math.toRadians(20));
         Action trajectoryActionClose1 = tab1.endTrajectory().fresh()
                 //.strafeTo(new Vector2d(48, 12))
                 .build();
@@ -401,9 +397,9 @@ public class ThisIsTheOne extends LinearOpMode {
         Action trajectoryActionClose5 = tab5.endTrajectory().fresh()
                 .waitSeconds(.5)
                 .build();
-        /*Action trajectoryActionClose5 = tab5.endTrajectory().fresh()
+        Action trajectoryActionClose6 = tab5.endTrajectory().fresh()
                 .waitSeconds(.2)
-                .build();*/
+                .build();
 
         // actions that need to happen on init; for instance, a claw tightening.
         Actions.runBlocking(claw.closeClaw());
@@ -460,12 +456,10 @@ public class ThisIsTheOne extends LinearOpMode {
                         claw.openClaw(),
                         wrist.wristDown(),
                         slide.slideDown(),
-                        lift.liftDown()
-                        //claw.closeClaw()
-
-
-
-
+                        lift.liftDown(),
+                        tab6.build(),
+                        claw.closeClaw(),
+                        tab3.build()
                 )
         );
     }
