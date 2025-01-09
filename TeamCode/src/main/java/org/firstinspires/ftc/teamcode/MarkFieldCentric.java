@@ -167,6 +167,19 @@ public class MarkFieldCentric extends LinearOpMode {
                 Wrist.setPosition(0);
             }
 
+            if (gamepad1.b){
+                LArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                RArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                LSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                RSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+                LSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                RSlide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                LArm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                RArm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+            }
+
 
 
 //Claw toggle
@@ -198,8 +211,8 @@ public class MarkFieldCentric extends LinearOpMode {
             }
 //Slide control
             if (gamepad1.right_bumper){//down
-                LSlide.setPower(0.7);
-                RSlide.setPower(0.7);
+                LSlide.setPower(0.8);
+                RSlide.setPower(0.8);
             }
             else if (gamepad1.left_bumper){//up
                 if ((LArmPos < 1300) && (RArmPos < 1300) && ((LSlidePos > 1450))){
@@ -207,8 +220,8 @@ public class MarkFieldCentric extends LinearOpMode {
                     RSlide.setPower(0);
                 }
                 else{
-                    LSlide.setPower(-0.6);
-                    RSlide.setPower(-0.6);
+                    LSlide.setPower(-0.9);
+                    RSlide.setPower(-0.9);
                 }
             }
             else{

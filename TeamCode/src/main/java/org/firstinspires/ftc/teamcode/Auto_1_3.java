@@ -18,8 +18,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
-@Autonomous(name = "1+2", group = "Autonomous")
-public class turnTest extends LinearOpMode {
+@Autonomous(name = "1+3", group = "Autonomous")
+public class Auto_1_3 extends LinearOpMode {
     public class Lift {
         private DcMotorEx llift;
         private DcMotorEx rlift;
@@ -39,8 +39,8 @@ public class turnTest extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    rlift.setPower(0.8);
-                    llift.setPower(0.8);
+                    rlift.setPower(1);
+                    llift.setPower(1);
                     initialized = true;
                 }
 
@@ -118,8 +118,8 @@ public class turnTest extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    llift.setPower(-0.8);
-                    rlift.setPower(-0.8);
+                    llift.setPower(-0.9);
+                    rlift.setPower(-0.9);
                     initialized = true;
                 }
 
@@ -158,8 +158,8 @@ public class turnTest extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    rslide.setPower(-0.9);
-                    lslide.setPower(-0.9);
+                    rslide.setPower(-1);
+                    lslide.setPower(-1);
                     initialized = true;
                 }
 
@@ -184,8 +184,8 @@ public class turnTest extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    lslide.setPower(0.9);
-                    rslide.setPower(0.9);
+                    lslide.setPower(1);
+                    rslide.setPower(1);
                     //lslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     //rslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     initialized = true;
@@ -361,26 +361,29 @@ public class turnTest extends LinearOpMode {
 
         TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
                 .lineToX(25.6);
-        TrajectoryActionBuilder tab2 = drive.actionBuilder(initialPose)
+        TrajectoryActionBuilder tab2 = drive.actionBuilder(new Pose2d(25.5,0,Math.toRadians(0)))
                 .waitSeconds(0.3)
-                .splineTo(new Vector2d(20,39.5),Math.toRadians(0));
+                .lineToX(20)
+                .strafeToLinearHeading(new Vector2d(20.5,39.5),Math.toRadians(0));
+                //.splineTo(new Vector2d(20.5,39.5),Math.toRadians(0));
         TrajectoryActionBuilder tab3 = drive.actionBuilder(new Pose2d(20.5,39.5,Math.toRadians(0)))
                 .waitSeconds(0.3)
                 //.lineToX(10)
                 //.turn(Math.toRadians(-45));
                 //.lineToYLinearHeading(45,Math.toRadians(-45));
-                .strafeToLinearHeading(new Vector2d(10,45), Math.toRadians(-43.5));
-        TrajectoryActionBuilder tab4 = drive.actionBuilder(new Pose2d(10,39.5,Math.toRadians(-43.5)))
+                .strafeToLinearHeading(new Vector2d(13,44), Math.toRadians(-45));
+        TrajectoryActionBuilder tab4 = drive.actionBuilder(new Pose2d(13,44,Math.toRadians(-45)))
                 .waitSeconds(0.3)
                 //.lineToXLinearHeading(20, Math.toRadians(0));
-                .strafeToLinearHeading(new Vector2d(20,48.7), Math.toRadians(0));
-                //.strafeToLinearHeading(new Vector2d(11,45),Math  .toRadians(0));
-        TrajectoryActionBuilder tab5 = drive.actionBuilder(new Pose2d(20.5,48,Math.toRadians(0)))
+                .strafeToLinearHeading(new Vector2d(20.5,48.7), Math.toRadians(0));
+        //.strafeToLinearHeading(new Vector2d(11,45),Math  .toRadians(0));
+        TrajectoryActionBuilder tab5 = drive.actionBuilder(new Pose2d(20.5,48.7,Math.toRadians(0)))
                 .waitSeconds(0.3)
                 //.lineToX(15)
                 //.lineToYLinearHeading(45,Math.toRadians(-45));
-                .strafeToLinearHeading(new Vector2d(10.6,45.7), Math.toRadians(-43.5));
-        TrajectoryActionBuilder tab6 = drive.actionBuilder(new Pose2d(10.6,45,Math.toRadians(-43.51 )))
+
+                .strafeToLinearHeading(new Vector2d(13,44), Math.toRadians(-45));
+        TrajectoryActionBuilder tab6 = drive.actionBuilder(new Pose2d(13,44,Math.toRadians(-45)))
                 .waitSeconds(0.5)
                 .strafeToLinearHeading(new Vector2d(21.5,54), Math.toRadians(20));
         Action trajectoryActionClose1 = tab1.endTrajectory().fresh()
@@ -405,7 +408,7 @@ public class turnTest extends LinearOpMode {
         Actions.runBlocking(claw.closeClaw());
         Actions.runBlocking(lift.liftInit());
 
-      //  Actions.runBlocking(wrist.wristBack());
+        Actions.runBlocking(wrist.wristBack());
 
 
         while (!isStopRequested() && !opModeIsActive()) {
@@ -424,7 +427,7 @@ public class turnTest extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
-                        wrist.wristBack(),
+                        //wrist.wristUp(),
                         tab1.build(),
                         trajectoryActionClose1,
                         wrist.wristDown(),
@@ -440,8 +443,8 @@ public class turnTest extends LinearOpMode {
                         tab3.build(),
                         slide.slideUp(),
                         wrist.wristBack(),
-                        trajectoryActionClose3,
                         claw.openClaw(),
+                        trajectoryActionClose3,
                         wrist.wristDown(),
                         slide.slideDown(),
                         lift.liftDown(),
@@ -452,14 +455,22 @@ public class turnTest extends LinearOpMode {
                         tab5.build(),
                         slide.slideUp(),
                         wrist.wristBack(),
-                        trajectoryActionClose5,
                         claw.openClaw(),
+                        trajectoryActionClose5,
                         wrist.wristDown(),
                         slide.slideDown(),
                         lift.liftDown(),
                         tab6.build(),
                         claw.closeClaw(),
-                        tab3.build()
+                        tab3.build(),
+                        lift.liftUp(),
+                        slide.slideUp(),
+                        wrist.wristBack(),
+                        trajectoryActionClose3,
+                        claw.openClaw(),
+                        wrist.wristDown(),
+                        slide.slideDown(),
+                        lift.liftDown()
                 )
         );
     }
