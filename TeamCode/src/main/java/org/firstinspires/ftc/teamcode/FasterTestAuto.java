@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
@@ -18,8 +19,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
-@Autonomous(name = "1+2", group = "Autonomous")
-public class turnTest extends LinearOpMode {
+@Autonomous(name = "1+3?", group = "Autonomous")
+public class FasterTestAuto extends LinearOpMode {
     public class Lift {
         private DcMotorEx llift;
         private DcMotorEx rlift;
@@ -39,8 +40,8 @@ public class turnTest extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    rlift.setPower(0.8);
-                    llift.setPower(0.8);
+                    rlift.setPower(0.75);
+                    llift.setPower(0.75);
                     initialized = true;
                 }
 
@@ -91,8 +92,8 @@ public class turnTest extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    llift.setPower(-0.6);
-                    rlift.setPower(-0.6);
+                    llift.setPower(-0.8);
+                    rlift.setPower(-0.8);
                     initialized = true;
                 }
 
@@ -112,7 +113,7 @@ public class turnTest extends LinearOpMode {
             return new LiftMid();
         }
 
-        public class LiftDown implements Action {
+        public class LiftPark implements Action {
             private boolean initialized = false;
 
             @Override
@@ -125,7 +126,34 @@ public class turnTest extends LinearOpMode {
 
                 double pos = llift.getCurrentPosition();
                 packet.put("liftPos", pos);
-                if (pos > 0) {
+                if (pos > 1800) {
+                    return true;
+                } else {
+                    //   sleep(300);
+                    llift.setPower(0);
+                    rlift.setPower(0);
+                    return false;
+                }
+            }
+        }
+        public Action liftPark(){
+            return new LiftPark();
+        }
+
+        public class LiftDown implements Action {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    llift.setPower(-0.75);
+                    rlift.setPower(-0.75);
+                    initialized = true;
+                }
+
+                double pos = llift.getCurrentPosition();
+                packet.put("liftPos", pos);
+                if (pos > 10) {
                     return true;
                 } else {
                     llift.setPower(0);
@@ -158,8 +186,8 @@ public class turnTest extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    rslide.setPower(-0.9);
-                    lslide.setPower(-0.9);
+                    rslide.setPower(-0.8);
+                    lslide.setPower(-0.8);
                     initialized = true;
                 }
 
@@ -184,16 +212,16 @@ public class turnTest extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    lslide.setPower(0.9);
-                    rslide.setPower(0.9);
+                    lslide.setPower(0.8);
+                    rslide.setPower(0.8);
                     //lslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    //rslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    //rslide.setMode(DcMotor.RunMode. STOP_AND_RESET_ENCODER);
                     initialized = true;
                 }
 
                 double pos = lslide.getCurrentPosition();
                 packet.put("SlidePos", pos);
-                if (pos > 45) {
+                if (pos > 165) {
                     return true;
                 } else {
                     lslide.setPower(0);
@@ -249,7 +277,7 @@ public class turnTest extends LinearOpMode {
 
                 double pos = lslide.getCurrentPosition();
                 packet.put("SlidePos", pos);
-                if (pos > 200) {
+                if (pos > 215) {
                     return true;
                 } else {
                     lslide.setPower(0);
@@ -275,25 +303,25 @@ public class turnTest extends LinearOpMode {
         public class CloseClaw implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(0.57);
+                claw.setPosition(0.33);
                 sleep(300);
                 return false;
             }
         }
         public Action closeClaw() {
-            return new CloseClaw();
+            return new FasterTestAuto.Claw.CloseClaw();
         }
 
         public class OpenClaw implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(0.2);
+                claw.setPosition(0);
+                sleep(300);
                 return false;
             }
         }
         public Action openClaw() {
-            return new OpenClaw();
-        }
+            return new FasterTestAuto.Claw.OpenClaw();}
     }
     public class Wrist {
         private Servo wrist;
@@ -362,52 +390,54 @@ public class turnTest extends LinearOpMode {
         TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
                 .lineToX(28);
         TrajectoryActionBuilder tab2 = drive.actionBuilder(new Pose2d(28,0,0))
-                .waitSeconds(0.3)
-                .lineToX(20)
-                .strafeToLinearHeading(new Vector2d(20,39.5),Math.toRadians(0));
-        TrajectoryActionBuilder tab3 = drive.actionBuilder(new Pose2d(20,39.5,Math.toRadians(0)))
-                .waitSeconds(0.3)
+                .waitSeconds(.5)
+                .lineToX(21.5)
+                .strafeToLinearHeading(new Vector2d(21.5,39.5),Math.toRadians(0));
+        TrajectoryActionBuilder tab3 = drive.actionBuilder(new Pose2d(21,39.5,Math.toRadians(0)))
+                .waitSeconds(0.5)
                 //.lineToX(10)
                 //.turn(Math.toRadians(-45));
                 //.lineToYLinearHeading(45,Math.toRadians(-45));
-                .strafeToLinearHeading(new Vector2d(16,39), Math.toRadians(-45));
-        TrajectoryActionBuilder tab4 = drive.actionBuilder(new Pose2d(16,39,Math.toRadians(-45)))
-                .waitSeconds(0.6)
+                .strafeToLinearHeading(new Vector2d(14.5,39), Math.toRadians(-45));
+        TrajectoryActionBuilder tab4 = drive.actionBuilder(new Pose2d(14.5,39,Math.toRadians(-45)))
+                .waitSeconds(0.5)
                 //.lineToXLinearHeading(20, Math.toRadians(0));
-                .strafeToLinearHeading(new Vector2d(20,47), Math.toRadians(0));
+                .strafeToLinearHeading(new Vector2d(21.5,48), Math.toRadians(0));
                 //.strafeToLinearHeading(new Vector2d(11,45),Math  .toRadians(0));
-        TrajectoryActionBuilder tab5 = drive.actionBuilder(new Pose2d(20,47,Math.toRadians(0)))
-                .waitSeconds(0.3)
+        TrajectoryActionBuilder tab5 = drive.actionBuilder(new Pose2d(21.5,48,Math.toRadians(0)))
+                .waitSeconds(0.5)
                 //.lineToX(15)
                 //.lineToYLinearHeading(45,Math.toRadians(-45));
-                .strafeToLinearHeading(new Vector2d(16,39), Math.toRadians(-45));
-        TrajectoryActionBuilder tab6 = drive.actionBuilder(new Pose2d(16,39,Math.toRadians(-45)))
+                .strafeToLinearHeading(new Vector2d(15,39), Math.toRadians(-45));
+        TrajectoryActionBuilder tab6 = drive.actionBuilder(new Pose2d(15,39,Math.toRadians(-45)))
                 .waitSeconds(0.5)
-                .strafeToLinearHeading(new Vector2d(21.5,54), Math.toRadians(20));
-        TrajectoryActionBuilder tab7 = drive.actionBuilder(new Pose2d(21.5,54,Math.toRadians(20)))
-                .waitSeconds(0.3)
+                .strafeToLinearHeading(new Vector2d(21,50), Math.toRadians(22));
+        TrajectoryActionBuilder tab7 = drive.actionBuilder(new Pose2d(21,50,Math.toRadians(22)))
+                .waitSeconds(0.5)
                 .strafeToLinearHeading(new Vector2d(16,39), Math.toRadians(-45));
-
+        TrajectoryActionBuilder tab8 = drive.actionBuilder(new Pose2d(16,39,Math.toRadians(-45)))
+                .waitSeconds(0.5)
+                .strafeToLinearHeading(new Vector2d(75,1.5), Math.toRadians(-90));
         Action trajectoryActionClose1 = tab1.endTrajectory().fresh()
                 //.strafeTo(new Vector2d(48, 12))
                 .build();
         Action trajectoryActionClose2 = tab2.endTrajectory().fresh()
                 .build();
         Action trajectoryActionClose3 = tab3.endTrajectory().fresh()
-                .waitSeconds(.3)
+                .waitSeconds(.4)
                 .build();
         Action trajectoryActionClose4 = tab4.endTrajectory().fresh()
-                .waitSeconds(.3)
+                .waitSeconds(.4)
                 .build();
         Action trajectoryActionClose5 = tab5.endTrajectory().fresh()
-                .waitSeconds(.3)
+                .waitSeconds(.4)
                 .build();
         Action trajectoryActionClose6 = tab5.endTrajectory().fresh()
-                .waitSeconds(.3)
+                .waitSeconds(.4)
                 .build();
 
         Action trajectoryActionClose7 = tab7.endTrajectory().fresh()
-                .waitSeconds(.3)
+                .waitSeconds(.4)
                 .build();
 
         // actions that need to happen on init; for instance, a claw tightening.
@@ -433,6 +463,7 @@ public class turnTest extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
+                        //specimen
                         wrist.wristBack(),
                         tab1.build(),
                         trajectoryActionClose1,
@@ -440,41 +471,65 @@ public class turnTest extends LinearOpMode {
                         lift.liftMid(),
                         claw.openClaw(),
                         wrist.wristBack(),
+                        //1st sample
                         tab2.build(),
                         wrist.wristDown(),
                         lift.liftDown(),
                         claw.closeClaw(),
                         trajectoryActionClose2,
                         lift.liftUp(),
-                        tab3.build(),
-                        slide.slideUp(),
+                        new ParallelAction(
+                                tab3.build(),
+                                slide.slideUp()
+                        ),
                         wrist.wristBack(),
                         trajectoryActionClose3,
                         claw.openClaw(),
-                        wrist.wristDown(),
-                        slide.slideDown(),
-                        lift.liftDown(),
-                        tab4.build(),
-                        trajectoryActionClose4,
+                        //2nd sample
+                        new ParallelAction(
+                                wrist.wristDown(),
+                                slide.slideDown(),
+                                tab4.build(),
+                                lift.liftDown()
+                        ),
                         claw.closeClaw(),
                         lift.liftUp(),
-                        tab5.build(),
-                        slide.slideUp(),
+                        trajectoryActionClose4,
+                        new ParallelAction(
+                                tab5.build(),
+                                slide.slideUp()
+
+                        ),
                         wrist.wristBack(),
                         trajectoryActionClose5,
                         claw.openClaw(),
-                        wrist.wristDown(),
-                        slide.slideDown(),
-                        lift.liftDown(),
-                        tab6.build(),
+                        //3rd sample
+                        new ParallelAction(
+                                wrist.wristDown(),
+                                slide.slideDown(),
+                                lift.liftDown(),
+                                tab6.build()
+                        ),
                         claw.closeClaw(),
-                        tab7.build(),
+                        trajectoryActionClose6,
                         lift.liftUp(),
-                        slide.slideUp(),
+                        new ParallelAction(
+                                tab7.build(),
+                                slide.slideUp()
+                        ),
                         wrist.wristBack(),
+                        trajectoryActionClose7,
                         claw.openClaw(),
-                        slide.slideDown(),
-                        trajectoryActionClose7
+                        wrist.wristDown(),
+                        //park
+                        new ParallelAction(
+                                slide.slideDown(),
+                                lift.liftPark(),
+                                tab8.build()
+                        ),
+                        wrist.wristBack(),
+                        wrist.wristUp()
+
                 )
         );
     }

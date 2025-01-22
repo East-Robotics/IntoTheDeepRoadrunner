@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
@@ -23,13 +24,21 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.acmerobotics.roadrunner.ftc.PositionVelocityPair;
+import com.qualcomm.robotcore.robot.Robot;
 
+import org.firstinspires.ftc.teamcode.MecanumDrive.DriveLocalizer;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
+import org.firstinspires.ftc.teamcode.ClassActions;
 
 @Config
 @TeleOp(name = "RoadRunnerTeleOp", group = "TeleOp")
 public class RoadrunnerTeleOp extends LinearOpMode {
+
+
+    //TwoDeadWheelLocalizer myLocalizer = new TwoDeadWheelLocalizer(hardwareMap);
     private DcMotor LFMotor;
     private DcMotor RFMotor;
     private DcMotor LBMotor;
@@ -44,7 +53,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
 
 
     boolean WristIsOpen = true;
-    boolean ClawIsOpen = false;
+    boolean ClawIsOpen = true;
 
     boolean lastYState = false;
     boolean currentYState = false;
@@ -61,6 +70,10 @@ public class RoadrunnerTeleOp extends LinearOpMode {
     private double greenTarget = 200;
     private double blueTarget = 200;
 
+   /* public RoadrunnerTeleOp() {
+        robot = new Robot(hardwareMap);
+    }*/
+
     public void initHardware( ){
         initColorSensor();
     }
@@ -74,355 +87,28 @@ public class RoadrunnerTeleOp extends LinearOpMode {
         alphaValue = colorSensor.alpha();
     }
 
-    public void colorTelemetry() {
+  /*  public void colorTelemetry() {
         telemetry.addData("redValue","%.2f", redValue);
         telemetry.addData("greenValue","%.2f", greenValue);
         telemetry.addData("blueValue","%.2f", blueValue);
         telemetry.addData("alphaValue","%.2f", alphaValue);
         telemetry.update();
 
-    }
-
-
-
-
-
-    public class Lift {
-        private DcMotorEx llift;
-        private DcMotorEx rlift;
-
-        public Lift(HardwareMap hardwareMap) {
-            llift = hardwareMap.get(DcMotorEx.class, "LArm");
-            rlift = hardwareMap.get(DcMotorEx.class, "RArm");
-            llift.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-            llift.setDirection(DcMotorSimple.Direction.REVERSE);
-            rlift.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-            rlift.setDirection(DcMotorSimple.Direction.FORWARD);
-        }
-
-        public class LiftUp implements Action {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    rlift.setPower(1);
-                    llift.setPower(1);
-                    initialized = true;
-                }
-
-                double pos = llift.getCurrentPosition();
-                packet.put("liftPos", pos);
-                if (pos < 2900) {
-                    return true;
-                } else {
-                    llift.setPower(0);
-                    rlift.setPower(0);
-                    return false;
-                }
-            }
-        }
-        public Action liftUp() {
-            return new LiftUp();
-        }
-
-        public class LiftInit implements Action {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    rlift.setPower(0.8);
-                    llift.setPower(0.8);
-                    initialized = true;
-                }
-
-                double pos = llift.getCurrentPosition();
-                packet.put("liftPos", pos);
-                if (pos < 1450) {
-                    return true;
-                } else {
-                    llift.setPower(0);
-                    rlift.setPower(0);
-                    return false;
-                }
-            }
-        }
-        public Action liftInit() {
-            return new LiftInit();
-        }
-
-        public class LiftMid implements Action {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    llift.setPower(-0.6);
-                    rlift.setPower(-0.6);
-                    initialized = true;
-                }
-
-                double pos = llift.getCurrentPosition();
-                packet.put("liftPos", pos);
-                if (pos < 1000) {
-                    return true;
-                } else {
-                    sleep(300);
-                    llift.setPower(0);
-                    rlift.setPower(0);
-                    return false;
-                }
-            }
-        }
-        public Action liftMid(){
-            return new LiftMid();
-        }
-
-        public class LiftDown implements Action {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    llift.setPower(-0.9);
-                    rlift.setPower(-0.9);
-                    initialized = true;
-                }
-
-                double pos = llift.getCurrentPosition();
-                packet.put("liftPos", pos);
-                if (pos > 0) {
-                    return true;
-                } else {
-                    llift.setPower(0);
-                    rlift.setPower(0);
-                    return false;
-                }
-            }
-        }
-        public Action liftDown(){
-            return new LiftDown();
-        }
-    }
-
-    public class Slide {
-        private DcMotorEx lslide;
-        private DcMotorEx rslide;
-
-        public Slide(HardwareMap hardwareMap) {
-            lslide = hardwareMap.get(DcMotorEx.class, "LSlide");
-            rslide = hardwareMap.get(DcMotorEx.class, "RSlide");
-            lslide.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-            lslide.setDirection(DcMotorSimple.Direction.FORWARD);
-            rslide.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-            rslide.setDirection(DcMotorSimple.Direction.FORWARD);
-        }
-
-        public class Up implements Action {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    rslide.setPower(-1);
-                    lslide.setPower(-1);
-                    initialized = true;
-                }
-
-                double pos = lslide.getCurrentPosition();
-                packet.put("SlidePos", pos);
-                if (pos < 2500) {
-                    return true;
-                } else {
-                    lslide.setPower(0);
-                    rslide.setPower(0);
-                    return false;
-                }
-            }
-        }
-        public Action slideUp() {
-            return new Up();
-        }
-
-        public class Down implements Action {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    lslide.setPower(1);
-                    rslide.setPower(1);
-                    //lslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    //rslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    initialized = true;
-                }
-
-                double pos = lslide.getCurrentPosition();
-                packet.put("SlidePos", pos);
-                if (pos > 25) {
-                    return true;
-                } else {
-                    lslide.setPower(0);
-                    rslide.setPower(0);
-                    return false;
-                }
-            }
-        }
-        public Action slideDown(){
-            return new Down();
-        }
-
-        public class Out implements Action {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    lslide.setPower(-0.8);
-                    rslide.setPower(-0.8);
-                    //lslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    //rslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    initialized = true;
-                }
-
-                double pos = lslide.getCurrentPosition();
-                packet.put("SlidePos", pos);
-                if (pos < 1000) {
-                    return true;
-                } else {
-                    lslide.setPower(0);
-                    rslide.setPower(0);
-                    return false;
-                }
-            }
-        }
-        public Action Slideout(){
-            return new Out();
-        }
-
-        public class In implements Action {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    lslide.setPower(0.8);
-                    rslide.setPower(0.8);
-                    //lslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    //rslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    initialized = true;
-                }
-
-                double pos = lslide.getCurrentPosition();
-                packet.put("SlidePos", pos);
-                if (pos > 200) {
-                    return true;
-                } else {
-                    lslide.setPower(0);
-                    rslide.setPower(0);
-                    return false;
-                }
-            }
-        }
-        public Action Slidein(){
-            return new In();
-        }
-    }
-
-
-
-    public class Claw {
-        private Servo claw;
-
-        public Claw(HardwareMap hardwareMap) {
-            claw = hardwareMap.get(Servo.class, "Claw");
-        }
-
-        public class CloseClaw implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(0.57);
-                sleep(300);
-                return false;
-            }
-        }
-        public Action closeClaw() {
-            return new CloseClaw();
-        }
-
-        public class OpenClaw implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(0.2);
-                return false;
-            }
-        }
-        public Action openClaw() {
-            return new OpenClaw();
-        }
-    }
-    public class Wrist {
-        private Servo wrist;
-
-        public Wrist(HardwareMap hardwareMap) {
-            wrist = hardwareMap.get(Servo.class, "Wrist");
-        }
-
-        public class DownWrist implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                wrist.setPosition(0.3);
-                sleep(500);
-                return false;
-            }
-        }
-
-        public Action wristDown() {
-            return new DownWrist();
-        }
-
-        public class BackWrist implements Action {
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-                sleep(400);
-                wrist.setPosition(1);
-                return false;
-            }
-        }
-
-        public  Action wristBack() {
-            return new BackWrist();
-        }
-
-        public class UpWrist implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                wrist.setPosition(0.6);
-                return false;
-            }
-        }
-        public Action wristUp() {
-            return new UpWrist();
-        }
-    }
-    public class Drive{
-        public Action turn(double angle){
-            return new TodoAction();
-        }
-    }
-
+    }*/
 
     @Override
-    public void runOpMode() {
+    public void runOpMode() throws InterruptedException {
+
+
 
         Pose2d initialPose = new Pose2d(0, 0, Math.toRadians(0));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
-        Claw claw = new Claw(hardwareMap);
-        Lift lift = new Lift(hardwareMap);
-        Slide slide = new Slide(hardwareMap);
-        Wrist wrist = new Wrist(hardwareMap);
+
+       /* ClassActions.Claw claw = new claw(hardwareMap);
+        ClassActions.Lift lift = new lift(hardwareMap);
+        ClassActions.Slide slide = new slide(hardwareMap);
+        ClassActions.Wrist wrist = new wrist(hardwareMap);*/
+
         LFMotor = hardwareMap.get(DcMotor.class, "LFMotor");
         RFMotor = hardwareMap.get(DcMotor.class, "RFMotor");
         LBMotor = hardwareMap.get(DcMotor.class, "LBMotor");
@@ -434,6 +120,12 @@ public class RoadrunnerTeleOp extends LinearOpMode {
         Wrist = hardwareMap.get(Servo.class, "Wrist");
         Claw = hardwareMap.get(Servo.class, "Claw");
 
+       // ClassActions.Claw claw = (ClassActions.Claw) hardwareMap.get(Servo.class, "Claw");
+        //ClassActions.Wrist wrist = (ClassActions.Wrist) hardwareMap.get(Servo.class, "Wrist");
+       // ClassActions.Slide slide = (ClassActions.Slide) hardwareMap.get(DcMotor.class, "LSlide");
+
+
+
 
 
 
@@ -443,6 +135,8 @@ public class RoadrunnerTeleOp extends LinearOpMode {
         LBMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RFMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RBMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);*/
+
+        //localizer = new TwoDeadWheelLocalizer(hardwareMap, lazyImu.get(), PARAMS.inPerTick);
 
         LBMotor.setDirection(DcMotor.Direction.REVERSE);
         LFMotor.setDirection(DcMotor.Direction.REVERSE);
@@ -466,20 +160,15 @@ public class RoadrunnerTeleOp extends LinearOpMode {
         LArm.setPower(0.04);
         RArm.setPower(-0.04);
 
-        Wrist.setDirection(Servo.Direction.REVERSE);
-        LBMotor.setDirection(DcMotor.Direction.REVERSE);
+
+
+        //Wrist.setDirection(Servo.Direction.REVERSE);
+        //claw.setDirection(Servo.Direction.REVERSE);
+
+         LBMotor.setDirection(DcMotor.Direction.REVERSE);
         //LArm.setDirection(DcMotor.Direction.REVERSE);
 
-        int  LArmPos = LArm.getCurrentPosition();
-        int  RArmPos = RArm.getCurrentPosition();
-        int  LSlidePos = LSlide.getCurrentPosition();
-        int  RSlidePos = RSlide.getCurrentPosition();
 
-        telemetry.addData("RArmPos", RArmPos);
-        telemetry.addData("LArmPos", LArmPos);
-        telemetry.addData("LSlidePos", LSlidePos);
-        telemetry.addData("RSlidePos", RSlidePos);
-        telemetry.update();
 
         currentYState = gamepad2.y;
         currentXState = gamepad2.x;
@@ -489,7 +178,6 @@ public class RoadrunnerTeleOp extends LinearOpMode {
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
                 RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD));
-        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
         imu.initialize(parameters);
 
         waitForStart();
@@ -499,7 +187,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
         // vision here that outputs position
         int visionOutputPosition = 1;
 
-        TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
+        /*TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
                 //.lineToX(25);
                 .strafeToLinearHeading(new Vector2d(5,5),Math.toRadians(-45));
         TrajectoryActionBuilder tab2 = drive.actionBuilder(new Pose2d(25,40,Math.toRadians(0)));
@@ -558,30 +246,46 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             telemetry.update();
         }
 
-
-        int startPosition = visionOutputPosition;
-        telemetry.addData("Starting Position", startPosition);
-        telemetry.update();
-
-        waitForStart();
-
-
-
             initHardware();
             while (!isStarted()) {
                 getColor();
-                colorTelemetry();
+             //   colorTelemetry();
             }
             while (opModeIsActive()) {
                 getColor();
-                colorTelemetry();
+                //colorTelemetry();
+
+                int  LArmPos = LArm.getCurrentPosition();
+                int  RArmPos = RArm.getCurrentPosition();
+                int  LSlidePos = LSlide.getCurrentPosition();
+                int  RSlidePos = RSlide.getCurrentPosition();
+                double WristPos = Wrist.getPosition();
+
+                TwoDeadWheelLocalizer.Params Position = new TwoDeadWheelLocalizer.Params();
+
+              /*  PositionVelocityPair parPosVel = par.getPositionAndVelocity();
+
+                lastParPos = parPosVel.position;
+                lastPerpPos = perpPosVel.position;
+                lastHeading = heading;
+
+*/
+                telemetry.addData("RArmPos", RArmPos);
+                telemetry.addData("LArmPos", LArmPos);
+                telemetry.addData("LSlidePos", LSlidePos);
+                telemetry.addData("RSlidePos", RSlidePos);
+                telemetry.addData("ClawPos", ClawIsOpen);
+                telemetry.addData("Wrist", WristIsOpen);
+                telemetry.addData("x", initialPose.position);
+                telemetry.addData("Y", initialPose.position);
+                telemetry.addData("heading", initialPose.heading);
 
             double py = -gamepad1.left_stick_y;
             double px = gamepad1.left_stick_x;
             double pa = gamepad1.right_stick_x;
 
             double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
-            botHeading -= Math.toRadians(0);
+            botHeading -= Math.toRadians(90);
 
             if (gamepad1.start) {
                 imu.resetYaw();
@@ -609,35 +313,22 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             LBMotor.setPower(LBtgtPower);
 
 
-
-           /* if (gamepad1.a) {
-                Actions.runBlocking(
-                        new SequentialAction(
-                                tab1.build()
-
-                        )
-                );
-            }*/
-
-          /*  if (gamepad2.x) {
-                Actions.runBlocking(
-                        new SequentialAction(
-                               claw.closeClaw()
-                        )
-                );
-            }*/
-            //Wrist toggle
-            if (currentYState && !lastYState) {
-                WristIsOpen = !WristIsOpen;
+                ClassActions.Wrist wrist = (ClassActions.Wrist);
+                if (WristIsOpen && gamepad2.y) {
+                 Actions.runBlocking(
+                            new ParallelAction(
+                                    wrist.wristBack()
+                            )
+                    );
+                WristIsOpen = false;
             }
-
-            lastYState = currentYState;
-
-            if (WristIsOpen) {
-                Wrist.setPosition(0.72);
-            }
-            else {
-                Wrist.setPosition(0);
+            if (!WristIsOpen && gamepad2.y) {
+                  Actions.runBlocking(
+                        new ParallelAction(
+                                wrist.wristDown()
+                         )
+                  );
+                  WristIsOpen = true;
             }
 
             if (gamepad1.b){
@@ -654,31 +345,58 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             }
 
             //Claw toggle
-            if (currentXState && !lastXState) {
+        /*    if (currentXState && !lastXState) {
                 ClawIsOpen = !ClawIsOpen;
             }
 
             lastXState = currentXState;
+*/
+                ClassActions.Claw claw = (ClassActions.Claw) ;
+                if (ClawIsOpen && gamepad2.x){
+                Actions.runBlocking(
+                        new ParallelAction(
+                                claw.openClaw()
+                        )
 
-            if (ClawIsOpen) {
-                Claw.setPosition(0.2);
+                );
+                ClawIsOpen = false;
 
-            } else {
-                Claw.setPosition(0.40);
+            }
+            if(!ClawIsOpen && gamepad2.x) {
+                Actions.runBlocking(
+                        new ParallelAction(
+                               claw.closeClaw()
+
+                        )
+                );
+                ClawIsOpen = true;
             }
 
 //Arm control
-            if (gamepad2.right_bumper) {
-                LArm.setPower(-0.85);
-                RArm.setPower(-0.85);
+            if (gamepad2.right_bumper) {//down
+                if ((RArmPos <400)) {
+                    LArm.setPower(0);
+                    RArm.setPower(0);
+                }
+                else {
+                    LArm.setPower(0.85);
+                    RArm.setPower(-0.85);
+                }
+
             }
-            else if(gamepad2.left_bumper){
-                LArm.setPower(0.85);
-                RArm.setPower(0.85);
+            else if(gamepad2.left_bumper){//up
+                if ((RArmPos> 2400)) {
+                    LArm.setPower(0);
+                    RArm.setPower(0);
+                }
+                else {
+                    LArm.setPower(-0.85);
+                    RArm.setPower(0.85);
+                }
             }
             else{
-                LArm.setPower(0.05);
-                RArm.setPower(0.05);
+                LArm.setPower(-0.08);
+                RArm.setPower(0.08);
             }
 //Slide control
             if (gamepad1.right_bumper){//down
@@ -686,7 +404,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
                 RSlide.setPower(0.9);
             }
             else if (gamepad1.left_bumper){//up
-                if ((LArmPos < 1300) && (RArmPos < 1300) && ((LSlidePos > 1450))){
+                if ((LArmPos < 1300) && (RArmPos < 1300) && ((LSlidePos > 900))){
                     LSlide.setPower(0);
                     RSlide.setPower(0);
                 }
@@ -700,7 +418,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
                 RSlide.setPower(-0.04);
             }
 
-            if (redValue> redTarget) {
+           /* if (redValue> redTarget) {
                 claw.closeClaw();
             }
 
@@ -710,34 +428,36 @@ public class RoadrunnerTeleOp extends LinearOpMode {
 
             if (blueValue> blueTarget) {
                 claw.closeClaw();
-            }
+            }*/
 
 
-            if (gamepad2.a) {
+                ClassActions.Slide slide = null;
+                if (gamepad1.dpad_up) {
                 Actions.runBlocking(
+                        new ParallelAction(
                         new SequentialAction(
-                                lift.liftUp(),
+                        //        lift.liftUp(),
                                 slide.slideUp(),
-                                wrist.wristDown(),
                                 wrist.wristBack()
-
+                        )
                         )
                 );
             }
 
-            if (gamepad2.b) {
+            if (gamepad1.dpad_down) {
                 Actions.runBlocking(
+                        new ParallelAction(
                         new SequentialAction(
-                                claw.openClaw(),
+                                claw.closeClaw(),
                                 wrist.wristDown(),
-                                slide.slideDown(),
-                                lift.liftDown()
+                                slide.slideDown()
+                              //  lift.liftDown()
+                        )
                         )
                 );
             }
 
         }
-
         if (isStopRequested()) return;
 
 
