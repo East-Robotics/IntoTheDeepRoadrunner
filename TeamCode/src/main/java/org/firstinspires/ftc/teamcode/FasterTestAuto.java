@@ -303,8 +303,8 @@ public class FasterTestAuto extends LinearOpMode {
         public class CloseClaw implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(0.33);
-                sleep(300);
+                claw.setPosition(0.27);
+                sleep(500);
                 return false;
             }
         }
@@ -315,8 +315,8 @@ public class FasterTestAuto extends LinearOpMode {
         public class OpenClaw implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(0);
-                sleep(300);
+                claw.setPosition(0.01);
+                sleep(500);
                 return false;
             }
         }
@@ -333,7 +333,7 @@ public class FasterTestAuto extends LinearOpMode {
         public class DownWrist implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                wrist.setPosition(0.3);
+                wrist.setPosition(0.2);
                 sleep(500);
                 return false;
             }
@@ -388,8 +388,8 @@ public class FasterTestAuto extends LinearOpMode {
         int visionOutputPosition = 1;
 
         TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
-                .lineToX(28);
-        TrajectoryActionBuilder tab2 = drive.actionBuilder(new Pose2d(28,0,0))
+                .lineToX(29.5);
+        TrajectoryActionBuilder tab2 = drive.actionBuilder(new Pose2d(29.5,0,0))
                 .waitSeconds(.5)
                 .lineToX(21.5)
                 .strafeToLinearHeading(new Vector2d(21.5,39.5),Math.toRadians(0));
@@ -398,8 +398,8 @@ public class FasterTestAuto extends LinearOpMode {
                 //.lineToX(10)
                 //.turn(Math.toRadians(-45));
                 //.lineToYLinearHeading(45,Math.toRadians(-45));
-                .strafeToLinearHeading(new Vector2d(14.5,39), Math.toRadians(-45));
-        TrajectoryActionBuilder tab4 = drive.actionBuilder(new Pose2d(14.5,39,Math.toRadians(-45)))
+                .strafeToLinearHeading(new Vector2d(14,41), Math.toRadians(-45));
+        TrajectoryActionBuilder tab4 = drive.actionBuilder(new Pose2d(14.5,41,Math.toRadians(-45)))
                 .waitSeconds(0.5)
                 //.lineToXLinearHeading(20, Math.toRadians(0));
                 .strafeToLinearHeading(new Vector2d(21.5,48), Math.toRadians(0));
@@ -408,14 +408,14 @@ public class FasterTestAuto extends LinearOpMode {
                 .waitSeconds(0.5)
                 //.lineToX(15)
                 //.lineToYLinearHeading(45,Math.toRadians(-45));
-                .strafeToLinearHeading(new Vector2d(15,39), Math.toRadians(-45));
-        TrajectoryActionBuilder tab6 = drive.actionBuilder(new Pose2d(15,39,Math.toRadians(-45)))
+                .strafeToLinearHeading(new Vector2d(14.3,41), Math.toRadians(-45));
+        TrajectoryActionBuilder tab6 = drive.actionBuilder(new Pose2d(15,41,Math.toRadians(-45)))
                 .waitSeconds(0.5)
                 .strafeToLinearHeading(new Vector2d(21,50), Math.toRadians(22));
         TrajectoryActionBuilder tab7 = drive.actionBuilder(new Pose2d(21,50,Math.toRadians(22)))
                 .waitSeconds(0.5)
-                .strafeToLinearHeading(new Vector2d(16,39), Math.toRadians(-45));
-        TrajectoryActionBuilder tab8 = drive.actionBuilder(new Pose2d(16,39,Math.toRadians(-45)))
+                .strafeToLinearHeading(new Vector2d(15,41), Math.toRadians(-45));
+        TrajectoryActionBuilder tab8 = drive.actionBuilder(new Pose2d(15,41,Math.toRadians(-45)))
                 .waitSeconds(0.5)
                 .strafeToLinearHeading(new Vector2d(75,1.5), Math.toRadians(-90));
         Action trajectoryActionClose1 = tab1.endTrajectory().fresh()
@@ -470,9 +470,10 @@ public class FasterTestAuto extends LinearOpMode {
                         wrist.wristDown(),
                         lift.liftMid(),
                         claw.openClaw(),
+                        new ParallelAction(
                         wrist.wristBack(),
                         //1st sample
-                        tab2.build(),
+                        tab2.build()),
                         wrist.wristDown(),
                         lift.liftDown(),
                         claw.closeClaw(),

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+/*package org.firstinspires.ftc.teamcode;
 
 import androidx.annotation.NonNull;
 
@@ -12,47 +12,37 @@ import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.hardware.rev.RevColorSensorV3;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
-import com.acmerobotics.roadrunner.ftc.PositionVelocityPair;
-import com.qualcomm.robotcore.robot.Robot;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
-
-
-import org.firstinspires.ftc.teamcode.MecanumDrive.DriveLocalizer;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 
-@Config
-@TeleOp(name = "RoadRunnerTeleOp", group = "TeleOp")
-public class RoadrunnerTeleOp extends LinearOpMode {
+//@Config
+@TeleOp(name = "RoadRunnerTeleOpPID", group = "TeleOp")
+public class RoadrunnerTeleOpPID extends LinearOpMode {
 
     private MecanumDrive drive;
-    private RevBlinkinLedDriver Blinkin;
-    lights = hardwareMap.get(RevBlinkinLedDriver.class, "lights");
 
-    //private Pose2d targetPose = new Pose2d(30, 30, Math.toRadians(45));
-   // private Pose2d startPose = new Pose2d(0,0,Math.toRadians(0));
+    private Pose2d targetPose = new Pose2d(30, 30, Math.toRadians(45));
+    private Pose2d startPose = new Pose2d(0,0,Math.toRadians(0));
 
-  /*  public void colorTelemetry() {
+    public void colorTelemetry() {
         telemetry.addData("redValue","%.2f", redValue);
         telemetry.addData("greenValue","%.2f", greenValue);
         telemetry.addData("blueValue","%.2f", blueValue);
         telemetry.addData("alphaValue","%.2f", alphaValue);
         telemetry.update();
 
-    }*/
+    }
 
     public class Lift {
         private DcMotorEx llift;
@@ -90,7 +80,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             }
         }
         public Action liftUp() {
-            return new RoadrunnerTeleOp.Lift.LiftUp();
+            return new RoadrunnerTeleOpPID.Lift.LiftUp();
         }
 
         public class LiftInit implements Action {
@@ -116,7 +106,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             }
         }
         public Action liftInit() {
-            return new RoadrunnerTeleOp.Lift.LiftInit();
+            return new RoadrunnerTeleOpPID.Lift.LiftInit();
         }
 
         public class LiftMid implements Action {
@@ -143,7 +133,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             }
         }
         public Action liftMid(){
-            return new RoadrunnerTeleOp.Lift.LiftMid();
+            return new RoadrunnerTeleOpPID.Lift.LiftMid();
         }
 
         public class LiftPark implements Action {
@@ -170,7 +160,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             }
         }
         public Action liftPark(){
-            return new RoadrunnerTeleOp.Lift.LiftPark();
+            return new RoadrunnerTeleOpPID.Lift.LiftPark();
         }
 
         public class LiftDown implements Action {
@@ -196,7 +186,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             }
         }
         public Action liftDown(){
-            return new RoadrunnerTeleOp.Lift.LiftDown();
+            return new RoadrunnerTeleOpPID.Lift.LiftDown();
         }
     }
 
@@ -236,7 +226,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             }
         }
         public Action slideUp() {
-            return new RoadrunnerTeleOp.Slide.Up();
+            return new RoadrunnerTeleOpPID.Slide.Up();
         }
 
         public class Down implements Action {
@@ -264,7 +254,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             }
         }
         public Action slideDown(){
-            return new RoadrunnerTeleOp.Slide.Down();
+            return new RoadrunnerTeleOpPID.Slide.Down();
         }
 
         public class Out implements Action {
@@ -292,7 +282,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             }
         }
         public Action Slideout(){
-            return new RoadrunnerTeleOp.Slide.Out();
+            return new RoadrunnerTeleOpPID.Slide.Out();
         }
 
         public class In implements Action {
@@ -320,7 +310,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             }
         }
         public Action Slidein(){
-            return new RoadrunnerTeleOp.Slide.In();
+            return new RoadrunnerTeleOpPID.Slide.In();
         }
     }
 
@@ -342,7 +332,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             }
         }
         public Action closeClaw() {
-            return new RoadrunnerTeleOp.Claw.CloseClaw();
+            return new RoadrunnerTeleOpPID.Claw.CloseClaw();
         }
 
         public class OpenClaw implements Action {
@@ -354,7 +344,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             }
         }
         public Action openClaw() {
-            return new RoadrunnerTeleOp.Claw.OpenClaw();}
+            return new RoadrunnerTeleOpPID.Claw.OpenClaw();}
     }
     public class Wrist {
         private Servo wrist;
@@ -373,7 +363,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
         }
 
         public Action wristDown() {
-            return new RoadrunnerTeleOp.Wrist.DownWrist();
+            return new RoadrunnerTeleOpPID.Wrist.DownWrist();
         }
 
         public class BackWrist implements Action {
@@ -387,7 +377,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
         }
 
         public  Action wristBack() {
-            return new RoadrunnerTeleOp.Wrist.BackWrist();
+            return new RoadrunnerTeleOpPID.Wrist.BackWrist();
         }
 
         public class UpWrist implements Action {
@@ -398,7 +388,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             }
         }
         public Action wristUp() {
-            return new RoadrunnerTeleOp.Wrist.UpWrist();
+            return new RoadrunnerTeleOpPID.Wrist.UpWrist();
         }
     }
     public class Drive{
@@ -437,9 +427,9 @@ public class RoadrunnerTeleOp extends LinearOpMode {
     private double greenTarget = 200;
     private double blueTarget = 200;
 
-   /* public RoadrunnerTeleOp() {
+    public RoadrunnerTeleOp() {
         robot = new Robot(hardwareMap);
-    }*/
+    }
 
     public void initHardware( ){
         initColorSensor();
@@ -461,16 +451,16 @@ public class RoadrunnerTeleOp extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         //drive = new MecanumDrive(hardwareMap);
        // drive.setPoseEstimate(new Pose2d(0,0,0));
-        //drive.updatePoseEstimate();
+        drive.updatePoseEstimate();
 
 
 
 
-        //Pose2d initialPose = new Pose2d(0, 0, Math.toRadians(0));
-        //MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
+        Pose2d initialPose = new Pose2d(0, 0, Math.toRadians(0));
+        MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
 
-        //TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
-                //.strafeToLinearHeading(new Vector2d(20,20), Math.toRadians(45));
+        TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
+                .strafeToLinearHeading(new Vector2d(20,20), Math.toRadians(45));
 
 
 
@@ -505,10 +495,10 @@ public class RoadrunnerTeleOp extends LinearOpMode {
 
 
         //Encoders
-       /* LFMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        LFMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         LBMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         RFMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        RBMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);*/
+        RBMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         //localizer = new TwoDeadWheelLocalizer(hardwareMap, lazyImu.get(), PARAMS.inPerTick);
 
@@ -533,7 +523,6 @@ public class RoadrunnerTeleOp extends LinearOpMode {
 
         LArm.setPower(0.04);
         RArm.setPower(-0.04);
-
 
 
 
@@ -587,13 +576,13 @@ public class RoadrunnerTeleOp extends LinearOpMode {
 
                 TwoDeadWheelLocalizer.Params Position = new TwoDeadWheelLocalizer.Params();
 
-              /*  PositionVelocityPair parPosVel = par.getPositionAndVelocity();
+                PositionVelocityPair parPosVel = par.getPositionAndVelocity();
 
                 lastParPos = parPosVel.position;
                 lastPerpPos = perpPosVel.position;
                 lastHeading = heading;
 
-*/
+
                 telemetry.addData("RArmPos", RArmPos);
                 telemetry.addData("LArmPos", LArmPos);
                 telemetry.addData("LSlidePos", LSlidePos);
@@ -602,13 +591,24 @@ public class RoadrunnerTeleOp extends LinearOpMode {
                 telemetry.addData("Wrist", WristIsOpen);
                 telemetry.update();
                 currentXState = gamepad2.x;
-               /* telemetry.addData("x", initialPose.position);
+                telemetry.addData("x", initialPose.position);
                 telemetry.addData("Y", initialPose.position);
-                telemetry.addData("heading", initialPose.heading);*/
+                telemetry.addData("heading", initialPose.heading);
 
             double py = -gamepad1.left_stick_y;
             double px = gamepad1.left_stick_x;
             double pa = gamepad1.right_stick_x;
+
+            double Kp = 0.1;
+            double Ki = 0.1;
+            double Kd = 0.1;
+
+            double reference = 0.2;
+
+            double integralSum = 0;
+
+            double lastError = 0;
+            ElapsedTime timer = new ElapsedTime();
 
             double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
             botHeading -= Math.toRadians(90);
@@ -637,6 +637,31 @@ public class RoadrunnerTeleOp extends LinearOpMode {
             RBMotor.setPower(RBtgtPower);
 
             LBMotor.setPower(LBtgtPower);
+
+            while (setPointIsNotReached) {
+
+
+                    // obtain the encoder position
+                double encoderPosition = LFMotor.getCurrentPosition();
+                    // calculate the error
+                double error = reference - encoderPosition;
+
+                    // rate of change of the error
+                double derivative = (error - lastError) / timer.seconds();
+
+                    // sum of all error over time
+                integralSum = integralSum + (error * timer.seconds());
+
+                double out = (Kp * error) + (Ki * integralSum) + (Kd * derivative);
+
+                LFMotor.setPower(out);
+
+                lastError = error;
+
+                    // reset the timer for next time
+                timer.reset();
+
+                }
 
                 if (WristIsOpen && gamepad2.y) {
                  Actions.runBlocking(
@@ -676,19 +701,14 @@ public class RoadrunnerTeleOp extends LinearOpMode {
 
                 if (ClawIsOpen) {
                     Claw.setPosition(0.01);
-                    blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.HOT_PINK);
-
-
 
                 } else {
                     Claw.setPosition(0.27);
-                    blinkinLedDriver.setPattern(RevBlinkinLedDriver.BlinkinPattern.VIOLET);
-
                 }
 
 
                 //Claw toggle
-        /*    if (currentXState && !lastXState) {
+           if (currentXState && !lastXState) {
                 ClawIsOpen = !ClawIsOpen;
             }
 
@@ -717,7 +737,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
                 ClawIsOpen = true;
                 telemetry.addData("ClawPos", ClawIsOpen);
                 telemetry.update();
-            }*/
+            }
 
 //Arm control
             if (gamepad2.right_bumper) {//down
@@ -747,7 +767,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
                 }
             }
             else{
-                LArm.setPower(0.08);
+                LArm.setPower(-0.08);
                 RArm.setPower(0.08);
             }
 //Slide control
@@ -770,7 +790,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
                 RSlide.setPower(-0.04);
             }
 
-           /* if (redValue> redTarget) {
+            if (redValue> redTarget) {
                 claw.closeClaw();
             }
 
@@ -780,7 +800,7 @@ public class RoadrunnerTeleOp extends LinearOpMode {
 
             if (blueValue> blueTarget) {
                 claw.closeClaw();
-            }*/
+            }
 
 
                 if (gamepad1.dpad_up) {
@@ -803,15 +823,15 @@ public class RoadrunnerTeleOp extends LinearOpMode {
                         )
                 );
             }
-                //if (gamepad1.x) {
+                if (gamepad1.x) {
                     // Trigger movement to the target position when the A button is pressed
-                   // Actions.runBlocking(
-                           // new SequentialAction(
-                                   // tab1.build()
+                    Actions.runBlocking(
+                            new SequentialAction(
+                                    tab1.build()
 
-                           // )
-                   // );
-              //  }
+                            )
+                    );
+                }
 
         }
         if (isStopRequested()) return;
@@ -821,3 +841,4 @@ public class RoadrunnerTeleOp extends LinearOpMode {
 
     }
 }
+*/
