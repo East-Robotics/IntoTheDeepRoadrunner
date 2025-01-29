@@ -1,24 +1,30 @@
-/*package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode;
 
 import androidx.annotation.NonNull;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.TrajectoryActionBuilder;
+import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.ftc.Actions;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-public abstract class ClassActions extends LinearOpMode{
-
-    public static ClassActions.Claw Claw;
-    public static ClassActions.Wrist Wrist;
-
-    public static class Lift {
+@Config
+@Autonomous(name = "4+0", group = "Autonomous")
+public class AutoSpecimens extends LinearOpMode {
+    public class Lift {
         private DcMotorEx llift;
         private DcMotorEx rlift;
-
+        ;
         public Lift(HardwareMap hardwareMap) {
             llift = hardwareMap.get(DcMotorEx.class, "LArm");
             rlift = hardwareMap.get(DcMotorEx.class, "RArm");
@@ -34,8 +40,8 @@ public abstract class ClassActions extends LinearOpMode{
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    rlift.setPower(1);
-                    llift.setPower(1);
+                    rlift.setPower(0.75);
+                    llift.setPower(0.75);
                     initialized = true;
                 }
 
@@ -51,7 +57,7 @@ public abstract class ClassActions extends LinearOpMode{
             }
         }
         public Action liftUp() {
-            return new ClassActions.Lift.LiftUp();
+            return new LiftUp();
         }
 
         public class LiftInit implements Action {
@@ -77,7 +83,7 @@ public abstract class ClassActions extends LinearOpMode{
             }
         }
         public Action liftInit() {
-            return new ClassActions.Lift.LiftInit();
+            return new LiftInit();
         }
 
         public class LiftMid implements Action {
@@ -86,8 +92,8 @@ public abstract class ClassActions extends LinearOpMode{
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    llift.setPower(-0.6);
-                    rlift.setPower(-0.6);
+                    llift.setPower(-0.8);
+                    rlift.setPower(-0.8);
                     initialized = true;
                 }
 
@@ -96,7 +102,7 @@ public abstract class ClassActions extends LinearOpMode{
                 if (pos < 1000) {
                     return true;
                 } else {
-
+                    sleep(300);
                     llift.setPower(0);
                     rlift.setPower(0);
                     return false;
@@ -104,7 +110,34 @@ public abstract class ClassActions extends LinearOpMode{
             }
         }
         public Action liftMid(){
-            return new ClassActions.Lift.LiftMid();
+            return new LiftMid();
+        }
+
+        public class LiftPark implements Action {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    llift.setPower(-0.8);
+                    rlift.setPower(-0.8);
+                    initialized = true;
+                }
+
+                double pos = llift.getCurrentPosition();
+                packet.put("liftPos", pos);
+                if (pos > 1800) {
+                    return true;
+                } else {
+                    //   sleep(300);
+                    llift.setPower(0);
+                    rlift.setPower(0);
+                    return false;
+                }
+            }
+        }
+        public Action liftPark(){
+            return new LiftPark();
         }
 
         public class LiftDown implements Action {
@@ -113,14 +146,14 @@ public abstract class ClassActions extends LinearOpMode{
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    llift.setPower(-0.9);
-                    rlift.setPower(-0.9);
+                    llift.setPower(-0.75);
+                    rlift.setPower(-0.75);
                     initialized = true;
                 }
 
                 double pos = llift.getCurrentPosition();
                 packet.put("liftPos", pos);
-                if (pos > 0) {
+                if (pos > 10) {
                     return true;
                 } else {
                     llift.setPower(0);
@@ -130,11 +163,11 @@ public abstract class ClassActions extends LinearOpMode{
             }
         }
         public Action liftDown(){
-            return new ClassActions.Lift.LiftDown();
+            return new LiftDown();
         }
     }
 
-    public static class Slide {
+    public class Slide {
         private DcMotorEx lslide;
         private DcMotorEx rslide;
 
@@ -153,8 +186,8 @@ public abstract class ClassActions extends LinearOpMode{
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    rslide.setPower(-1);
-                    lslide.setPower(-1);
+                    rslide.setPower(-0.8);
+                    lslide.setPower(-0.8);
                     initialized = true;
                 }
 
@@ -170,7 +203,7 @@ public abstract class ClassActions extends LinearOpMode{
             }
         }
         public Action slideUp() {
-            return new ClassActions.Slide.Up();
+            return new Up();
         }
 
         public class Down implements Action {
@@ -179,16 +212,16 @@ public abstract class ClassActions extends LinearOpMode{
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    lslide.setPower(1);
-                    rslide.setPower(1);
+                    lslide.setPower(0.8);
+                    rslide.setPower(0.8);
                     //lslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    //rslide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                    //rslide.setMode(DcMotor.RunMode. STOP_AND_RESET_ENCODER);
                     initialized = true;
                 }
 
                 double pos = lslide.getCurrentPosition();
                 packet.put("SlidePos", pos);
-                if (pos > 300) {
+                if (pos > 165) {
                     return true;
                 } else {
                     lslide.setPower(0);
@@ -198,7 +231,7 @@ public abstract class ClassActions extends LinearOpMode{
             }
         }
         public Action slideDown(){
-            return new ClassActions.Slide.Down();
+            return new Down();
         }
 
         public class Out implements Action {
@@ -226,7 +259,7 @@ public abstract class ClassActions extends LinearOpMode{
             }
         }
         public Action Slideout(){
-            return new ClassActions.Slide.Out();
+            return new Out();
         }
 
         public class In implements Action {
@@ -244,7 +277,7 @@ public abstract class ClassActions extends LinearOpMode{
 
                 double pos = lslide.getCurrentPosition();
                 packet.put("SlidePos", pos);
-                if (pos > 200) {
+                if (pos > 215) {
                     return true;
                 } else {
                     lslide.setPower(0);
@@ -254,14 +287,14 @@ public abstract class ClassActions extends LinearOpMode{
             }
         }
         public Action Slidein(){
-            return new ClassActions.Slide.In();
+            return new In();
         }
     }
 
 
 
     public class Claw {
-        public Servo claw;
+        private Servo claw;
 
         public Claw(HardwareMap hardwareMap) {
             claw = hardwareMap.get(Servo.class, "Claw");
@@ -270,57 +303,58 @@ public abstract class ClassActions extends LinearOpMode{
         public class CloseClaw implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(0);
-                sleep(800);
+                claw.setPosition(0.27);
+                sleep(500);
                 return false;
             }
         }
         public Action closeClaw() {
-            return new ClassActions.Claw.CloseClaw();
+            return new AutoSpecimens.Claw.CloseClaw();
         }
 
         public class OpenClaw implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                claw.setPosition(0.25);
-                sleep(800);
+                claw.setPosition(0.01);
+                sleep(500);
                 return false;
             }
         }
         public Action openClaw() {
-            return new ClassActions.Claw.OpenClaw();}
+            return new AutoSpecimens.Claw.OpenClaw();}
     }
     public class Wrist {
-        public Servo wrist;
+        private Servo wrist;
 
         public Wrist(HardwareMap hardwareMap) {
             wrist = hardwareMap.get(Servo.class, "Wrist");
         }
 
-
         public class DownWrist implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                wrist.setPosition(0.3);
+                wrist.setPosition(0.19);
                 sleep(500);
                 return false;
             }
         }
 
-        public Action wristDown() {return new ClassActions.Wrist.DownWrist();}
+        public Action wristDown() {
+            return new DownWrist();
+        }
 
         public class BackWrist implements Action {
 
             @Override
             public boolean run(@NonNull TelemetryPacket telemetryPacket) {
                 wrist.setPosition(1);
-                sleep(400);
+                sleep(200);
                 return false;
             }
         }
 
         public  Action wristBack() {
-            return new ClassActions.Wrist.BackWrist();
+            return new BackWrist();
         }
 
         public class UpWrist implements Action {
@@ -331,7 +365,7 @@ public abstract class ClassActions extends LinearOpMode{
             }
         }
         public Action wristUp() {
-            return new ClassActions.Wrist.UpWrist();
+            return new UpWrist();
         }
     }
     public class Drive{
@@ -339,5 +373,107 @@ public abstract class ClassActions extends LinearOpMode{
             return new TodoAction();
         }
     }
+
+
+    @Override
+    public void runOpMode() {
+        Pose2d initialPose = new Pose2d(0, 0, Math.toRadians(0));
+        MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
+        Claw claw = new Claw(hardwareMap);
+        Lift lift = new Lift(hardwareMap);
+        Slide slide = new Slide(hardwareMap);
+        Wrist wrist = new Wrist(hardwareMap);
+
+        // vision here that outputs position
+        int visionOutputPosition = 1;
+
+        TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
+                .lineToX(29.5);
+        TrajectoryActionBuilder tab2 = drive.actionBuilder(new Pose2d(29.5,0,0))
+                .waitSeconds(.5)
+                .lineToX(21.5)
+                .strafeToLinearHeading(new Vector2d(21.5,39.5),Math.toRadians(0));
+        TrajectoryActionBuilder tab3 = drive.actionBuilder(new Pose2d(21,39.5,Math.toRadians(0)))
+                .waitSeconds(0.5)
+                //.lineToX(10)
+                //.turn(Math.toRadians(-45));
+                //.lineToYLinearHeading(45,Math.toRadians(-45));
+                .strafeToLinearHeading(new Vector2d(14,41), Math.toRadians(-45));
+        TrajectoryActionBuilder tab4 = drive.actionBuilder(new Pose2d(14.5,41,Math.toRadians(-45)))
+                .waitSeconds(0.5)
+                //.lineToXLinearHeading(20, Math.toRadians(0));
+                .strafeToLinearHeading(new Vector2d(21.5,48), Math.toRadians(0));
+        //.strafeToLinearHeading(new Vector2d(11,45),Math  .toRadians(0));
+        TrajectoryActionBuilder tab5 = drive.actionBuilder(new Pose2d(21.5,48,Math.toRadians(0)))
+                .waitSeconds(0.5)
+                //.lineToX(15)
+                //.lineToYLinearHeading(45,Math.toRadians(-45));
+                .strafeToLinearHeading(new Vector2d(14.3,41), Math.toRadians(-45));
+        TrajectoryActionBuilder tab6 = drive.actionBuilder(new Pose2d(15,41,Math.toRadians(-45)))
+                .waitSeconds(0.5)
+                .strafeToLinearHeading(new Vector2d(21,50), Math.toRadians(22));
+        TrajectoryActionBuilder tab7 = drive.actionBuilder(new Pose2d(21,50,Math.toRadians(22)))
+                .waitSeconds(0.5)
+                .strafeToLinearHeading(new Vector2d(15,41), Math.toRadians(-45));
+        TrajectoryActionBuilder tab8 = drive.actionBuilder(new Pose2d(15,41,Math.toRadians(-45)))
+                .waitSeconds(0.5)
+                .strafeToLinearHeading(new Vector2d(75,1.5), Math.toRadians(-90));
+        Action trajectoryActionClose1 = tab1.endTrajectory().fresh()
+                //.strafeTo(new Vector2d(48, 12))
+                .build();
+        Action trajectoryActionClose2 = tab2.endTrajectory().fresh()
+                .build();
+        Action trajectoryActionClose3 = tab3.endTrajectory().fresh()
+                .waitSeconds(.4)
+                .build();
+        Action trajectoryActionClose4 = tab4.endTrajectory().fresh()
+                .waitSeconds(.4)
+                .build();
+        Action trajectoryActionClose5 = tab5.endTrajectory().fresh()
+                .waitSeconds(.4)
+                .build();
+        Action trajectoryActionClose6 = tab5.endTrajectory().fresh()
+                .waitSeconds(.4)
+                .build();
+
+        Action trajectoryActionClose7 = tab7.endTrajectory().fresh()
+                .waitSeconds(.4)
+                .build();
+
+        // actions that need to happen on init; for instance, a claw tightening.
+        Actions.runBlocking(claw.closeClaw());
+        Actions.runBlocking(lift.liftInit());
+
+        //  Actions.runBlocking(wrist.wristBack());
+
+
+        while (!isStopRequested() && !opModeIsActive()) {
+            int position = visionOutputPosition;
+            telemetry.addData("Position during Init", position);
+            telemetry.update();
+        }
+
+        int startPosition = visionOutputPosition;
+        telemetry.addData("Starting Position", startPosition);
+        telemetry.update();
+
+        waitForStart();
+
+        if (isStopRequested()) return;
+
+        Actions.runBlocking(
+                new SequentialAction(
+                        //specimen
+                        wrist.wristBack(),
+                        tab1.build(),
+                        trajectoryActionClose1,
+                        wrist.wristDown(),
+                        lift.liftMid(),
+                        claw.openClaw(),
+                        wrist.wristBack()
+
+
+                )
+        );
+    }
 }
-*/
