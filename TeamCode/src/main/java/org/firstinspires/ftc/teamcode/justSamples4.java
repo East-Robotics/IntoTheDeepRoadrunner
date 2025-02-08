@@ -13,15 +13,14 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
-@Autonomous(name = "1+3?", group = "Autonomous")
-public class FasterTestAuto extends LinearOpMode {
+@Autonomous(name = "0+4?", group = "Autonomous")
+public class justSamples4 extends LinearOpMode {
     public class Lift {
         public DcMotorEx llift;
         public DcMotorEx rlift;
@@ -312,7 +311,7 @@ public class FasterTestAuto extends LinearOpMode {
             }
         }
         public Action closeClaw() {
-            return new FasterTestAuto.Claw.CloseClaw();
+            return new justSamples4.Claw.CloseClaw();
         }
 
         public class OpenClaw implements Action {
@@ -324,7 +323,7 @@ public class FasterTestAuto extends LinearOpMode {
             }
         }
         public Action openClaw() {
-            return new FasterTestAuto.Claw.OpenClaw();}
+            return new justSamples4.Claw.OpenClaw();}
     }
     public class Wrist {
         private Servo wrist;
@@ -391,7 +390,8 @@ public class FasterTestAuto extends LinearOpMode {
         int visionOutputPosition = 1;
 
         TrajectoryActionBuilder tab1 = drive.actionBuilder(initialPose)
-                .lineToX(30.5);
+                .strafeToLinearHeading(new Vector2d(20,38.5), Math.toRadians(-45));
+                //.lineToX(30.5);
         TrajectoryActionBuilder tab2 = drive.actionBuilder(new Pose2d(30.5,0,0))
                 .waitSeconds(.3)
                 .lineToX(21.5)
@@ -420,7 +420,7 @@ public class FasterTestAuto extends LinearOpMode {
                 .strafeToLinearHeading(new Vector2d(24,37.5), Math.toRadians(-45));
         TrajectoryActionBuilder tab8 = drive.actionBuilder(new Pose2d(24,37.5,Math.toRadians(-45)))
                 .waitSeconds(0.5)
-                .strafeToLinearHeading(new Vector2d(85,1.5), Math.toRadians(-90));
+                .strafeToLinearHeading(new Vector2d(85,1), Math.toRadians(-90));
         Action trajectoryActionClose1 = tab1.endTrajectory().fresh()
                 //.strafeTo(new Vector2d(48, 12))
                 .build();
@@ -470,17 +470,16 @@ public class FasterTestAuto extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
-                        //specimen
-                        wrist.wristBack(),
-                        tab1.build(),
-                        trajectoryActionClose1,
-                        wrist.wristDown(),
-                        lift.liftMid(),
-                        claw.openClaw(),
                         new ParallelAction(
+                                wrist.wristDown(),
+                                tab1.build(),
+                                lift.liftUp()
+                        ),
+                        slide.slideUp(),
                         wrist.wristBack(),
-                        //1st sample
-                        tab2.build()),
+                        claw.openClaw(),
+                        //2nd sample
+                        tab2.build(),
                         wrist.wristDown(),
                         lift.liftDown(),
                         claw.closeClaw(),
@@ -493,7 +492,7 @@ public class FasterTestAuto extends LinearOpMode {
                         wrist.wristBack(),
                         trajectoryActionClose3,
                         claw.openClaw(),
-                        //2nd sample
+                        //3rd sample
                         new ParallelAction(
                                 wrist.wristDown(),
                                 slide.slideDown(),
@@ -511,7 +510,7 @@ public class FasterTestAuto extends LinearOpMode {
                         wrist.wristBack(),
                         trajectoryActionClose5,
                         claw.openClaw(),
-                        //3rd sample
+                        //4th sample
                         new ParallelAction(
                                 wrist.wristDown(),
                                 slide.slideDown(),
@@ -534,9 +533,7 @@ public class FasterTestAuto extends LinearOpMode {
                                 slide.slideDown(),
                                 lift.liftPark(),
                                 tab8.build()
-                        ),
-                        wrist.wristBack(),
-                        wrist.wristUp()
+                        )
 
                 )
         );

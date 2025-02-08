@@ -7,6 +7,8 @@ import org.rowlandhall.meepmeep.MeepMeep;
 import org.rowlandhall.meepmeep.roadrunner.DefaultBotBuilder;
 import org.rowlandhall.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
 
+import java.util.Vector;
+
 public class MeepMeepTesting {
     public static void main(String[] args) {
         MeepMeep meepMeep = new MeepMeep(720);
@@ -29,31 +31,18 @@ public class MeepMeepTesting {
                         .forward(45)
                         .strafeRight(5)
                         .back(45)
-                        .splineToConstantHeading(new Vector2d(58,-60), Math.toRadians(0))
-                        .turn(Math.toRadians(-90))
-                        .forward(3)
                         //2nd Specimen
-                        .splineToConstantHeading(new Vector2d(0,-45), -90)
-                        .turn(Math.toRadians(90))
-                        .forward(15)
-                        .back(15)
-                        .splineToConstantHeading(new Vector2d(58,-60), Math.toRadians(0))
-                        .turn(Math.toRadians(-90))
-                        .forward(3)
+                        .strafeTo(new Vector2d(38,-60))
+                        .strafeTo(new Vector2d(0,-35))
                         //3rd Specimen
-                        .splineToConstantHeading(new Vector2d(0,-45), -90)
-                        .turn(Math.toRadians(90))
-                        .forward(15)
-                        .back(15)
-                        .splineToConstantHeading(new Vector2d(58,-60), Math.toRadians(0))
-                        .turn(Math.toRadians(-90))
-                        .forward(3)
+                        .strafeTo(new Vector2d(38,-60))
+                        .strafeTo(new Vector2d(0,-35))
                         //4th Specimen
-                        .splineToConstantHeading(new Vector2d(0,-45), -90)
-                        .turn(Math.toRadians(90))
-                        .forward(15)
-                        .back(15)
-                        .splineToConstantHeading(new Vector2d(-30, -10), 90)
+                        .strafeTo(new Vector2d(38,-60))
+                        .strafeTo(new Vector2d(0,-35))
+                        //5th Speciemen
+                        .strafeTo(new Vector2d(38,-60))
+                        .strafeTo(new Vector2d(0,-35))
 
                         //.line
                         .build());

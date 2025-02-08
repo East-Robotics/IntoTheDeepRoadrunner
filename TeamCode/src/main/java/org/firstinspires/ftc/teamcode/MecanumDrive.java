@@ -56,11 +56,21 @@ import java.util.List;
 
 @Config
 public final class MecanumDrive {
+    private Pose2d poseEstimate;
+
     public void trajectoryBuilder(Pose2d pose2d) {
         DcMotor LARM = hardwareMap.dcMotor.get("LArm");
         DcMotor RARM = hardwareMap.dcMotor.get("RArm");
 
 
+    }
+
+    public Pose2d getPoseEstimate() {
+        return poseEstimate;
+    }
+
+    public void setPoseEstimate(Pose2d poseEstimate) {
+        this.poseEstimate = poseEstimate;
     }
 
 
@@ -83,11 +93,11 @@ public final class MecanumDrive {
         // feedforward parameters (in tick units)
         public double kS = 1.385608158067508;
         public double kV = 0.0005084234750897876;
-        public double kA = 0;
+        public double kA = 0.0001;
 
         // path profile parameters (in inches)
-        public double maxWheelVel = 50;
-        public double minProfileAccel = -30;
+        public double maxWheelVel = 100;
+        public double minProfileAccel = -50;
         public double maxProfileAccel = 50;
 
         // turn profile parameters (in radians)
@@ -99,9 +109,9 @@ public final class MecanumDrive {
         public double lateralGain = 8;
         public double headingGain = 5; // shared with turn
 
-        public double axialVelGain = 1;
-        public double lateralVelGain = 1;
-        public double headingVelGain = 1; // shared with turn
+        public double axialVelGain =0;
+        public double lateralVelGain = 0;
+        public double headingVelGain = 0; // shared with turn
     }
 
     public static Params PARAMS = new Params();
