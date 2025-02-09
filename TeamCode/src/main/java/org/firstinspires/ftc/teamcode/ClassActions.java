@@ -1,4 +1,4 @@
-/*package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode;
 
 import androidx.annotation.NonNull;
 
@@ -75,6 +75,33 @@ public abstract class ClassActions extends LinearOpMode{
                     return false;
                 }
             }
+        }
+
+        public class LiftPark implements Action {
+            private boolean initialized = false;
+
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                if (!initialized) {
+                    llift.setPower(-0.8);
+                    rlift.setPower(-0.8);
+                    initialized = true;
+                }
+
+                double pos = llift.getCurrentPosition();
+                packet.put("liftPos", pos);
+                if (pos > 1800) {
+                    return true;
+                } else {
+                    //   sleep(300);
+                    llift.setPower(0);
+                    rlift.setPower(0);
+                    return false;
+                }
+            }
+        }
+        public Action liftPark(){
+            return new ClassActions.Lift.LiftPark();
         }
         public Action liftInit() {
             return new ClassActions.Lift.LiftInit();
@@ -340,4 +367,3 @@ public abstract class ClassActions extends LinearOpMode{
         }
     }
 }
-*/
